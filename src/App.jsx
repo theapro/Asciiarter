@@ -39,11 +39,43 @@ function App() {
   const [asciiArt, setAsciiArt] = useState('')
   const [colorAsciiArt, setColorAsciiArt] = useState('')
   const [isDragging, setIsDragging] = useState(false)
-  const [useColor, setUseColor] = useState(false)
+  const [useColor, setUseColor] = useState(true)
   const [size, setSize] = useState(isMobileDevice() ? 'small' : 'medium')
   const fileInputRef = useRef(null)
   const [isZoomed, setIsZoomed] = useState(false)
   const [zoomLevel, setZoomLevel] = useState(1)
+  const [asciiChars, setAsciiChars] = useState(' .:-=+*#%@')
+  const [lastImageFile, setLastImageFile] = useState(null)
+
+  const charPresets = {
+    'Standard': ' .:-=+*#%@',
+    'Detailed': ' .\'"`,^:;Il!i><~+_-?][}{1)(|\\/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$',
+    'Blocks': ' ░▒▓█',
+    'Triangles': ' ◺◹◸◿▸▹►▻▷▶',
+    'Simple': ' .-+*#@',
+    'Binary': '01',
+    'Minimal': ' .@',
+    'Dots': ' .·•●',
+    'Circles': ' ○◌◍◐◑●',
+    'Squares': ' ▫▪◽◾◻◼',
+    'Shades': ' ░▒▓█',
+    'Lines': ' -=≡',
+    'Slashes': ' /\\|',
+    'Arrows': ' ←↑→↓',
+    'Box Drawing': ' ─│┼╬█',
+    'Brackets': ' ()[]{}',
+    'Waves': ' ∼≈≋',
+    'Stars': ' .·*✦✧★',
+    'Cards': ' ♤♡♢♧',
+    'Music': ' ♪♫♬',
+    'Currency': ' ¢$€£¥',
+    'Math': ' ∙·+×÷',
+    'Dingbats': ' ○◇◊◆',
+    'Braille': ' ⠁⠃⠇⠏⠟⠿⣿',
+    'Runes': ' ᚁᚂᚃᚄᚅᚆᚇᚈ',
+    'Greek': ' αβγδεζηθ',
+    'Japanese': ' 。あいうえおかきくけこ'
+  }
 
   const sizeMap = {
     small: 60,
@@ -51,14 +83,19 @@ function App() {
     large: isMobileDevice() ? 225 : 300
   }
 
-  const convertToAscii = useCallback(async (file) => {
+  const convertToAscii = useCallback(async (file, customChars = null) => {
+    // Save the file for regeneration
+    if (file) {
+      setLastImageFile(file)
+    }
+
     const img = new Image()
     img.src = URL.createObjectURL(file)
-    
+
     await new Promise((resolve) => {
       img.onload = resolve
     })
-    
+
     const dropZone = document.querySelector('.drop-zone')
     const MAX_ASCII_SIZE = sizeMap[size]
     
@@ -109,26 +146,29 @@ function App() {
     
     try {
       const imageData = ctx.getImageData(0, 0, charWidth, charHeight)
-      const asciiChars = ' .:-=+*#%@'
-      
+      const charsToUse = customChars || asciiChars
+
+      // Convert string to array of characters to handle emojis properly
+      const charArray = Array.from(charsToUse)
+
       // Generate monochrome version first
       let monoAscii = ''
       let lines = []
-      
+
       // Build the ASCII art line by line
       for (let y = 0; y < charHeight; y++) {
-        let line = ''
+        let line = []
         for (let x = 0; x < charWidth; x++) {
           const offset = (y * charWidth + x) * 4
           const r = imageData.data[offset]
           const g = imageData.data[offset + 1]
           const b = imageData.data[offset + 2]
           const brightness = 0.299 * r + 0.587 * g + 0.114 * b
-          const charIndex = Math.floor((brightness / 255) * (asciiChars.length - 1))
-          line += asciiChars[charIndex]
+          const charIndex = Math.min(Math.floor((brightness / 255) * charArray.length), charArray.length - 1)
+          line.push(charArray[charIndex])
         }
         lines.push(line)
-        monoAscii += line + '\n'
+        monoAscii += line.join('') + '\n'
       }
       
       // Generate colored version using the exact same characters
@@ -140,7 +180,9 @@ function App() {
           const g = imageData.data[offset + 1]
           const b = imageData.data[offset + 2]
           const char = lines[y][x] // Use the exact same character from monochrome version
-          colorHtml += `<span style="color:rgb(${r},${g},${b})">${char}</span>`
+          // Escape HTML special characters
+          const escapedChar = char.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+          colorHtml += `<span style="color:rgb(${r},${g},${b})">${escapedChar}</span>`
         }
         colorHtml += '\n'
       }
@@ -155,7 +197,7 @@ function App() {
     } finally {
       URL.revokeObjectURL(img.src)
     }
-  }, [size])
+  }, [size, asciiChars])
 
   const handleDragOver = useCallback((e) => {
     e.preventDefault()
@@ -189,6 +231,8 @@ function App() {
     if (file && file.type.startsWith('image/')) {
       convertToAscii(file)
     }
+    // Reset the input value to allow re-uploading the same file
+    e.target.value = ''
   }
 
   const handleSaveAscii = () => {
@@ -301,6 +345,12 @@ function App() {
     })
   }
 
+  const handleRegenerate = () => {
+    if (lastImageFile) {
+      convertToAscii(lastImageFile, asciiChars)
+    }
+  }
+
   // Add favicon animation
   useEffect(() => {
     const colors = ['#00f3ff', '#ff2b9d']
@@ -321,9 +371,36 @@ function App() {
     <div className="app-container">
       <h1 className="title">ITOA: Image to ASCII Converter</h1>
       <div className="credit">
-        // by <a href="http://x.com/IceSolst" target="_blank" rel="noopener noreferrer">solst/ICE</a>
+        // by <a href="http://x.com/IceSolst" target="_blank" rel="noopener noreferrer">solst/ICE</a> <a href="https://github.com/solst-ice/itoa" target="_blank" rel="noopener noreferrer">[source code]</a>
       </div>
-      
+
+      <div className="char-controls">
+        <select
+          className="char-preset-select"
+          onChange={(e) => setAsciiChars(e.target.value)}
+          defaultValue=" .:-=+*#%@"
+        >
+          {Object.values(charPresets).map((chars, index) => (
+            <option key={index} value={chars}>{chars.substring(0, 10)}</option>
+          ))}
+        </select>
+        <input
+          type="text"
+          className="char-input"
+          value={asciiChars}
+          onChange={(e) => setAsciiChars(e.target.value)}
+          placeholder="ASCII characters"
+        />
+        <button
+          className="control-btn"
+          onClick={handleRegenerate}
+          disabled={!lastImageFile}
+          data-text="Regenerate"
+        >
+          Regenerate
+        </button>
+      </div>
+
       <div className="controls">
         <button 
           className={`control-btn ${useColor ? 'active' : ''}`}
