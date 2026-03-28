@@ -1,68 +1,136 @@
-:root {
-  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
+@import "tailwindcss";
 
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+@config "../tailwind.config.js";
 
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
-}
-
-body {
-  margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
-}
-
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
-}
-
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
-  cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
-}
-
-@media (prefers-color-scheme: light) {
+@layer base {
   :root {
-    color: #213547;
-    background-color: #ffffff;
+    color-scheme: dark;
+
+    --background: 24 28% 6%;
+    --foreground: 45 18% 92%;
+
+    --card: 24 24% 9%;
+    --card-foreground: 45 18% 92%;
+
+    --popover: 24 24% 9%;
+    --popover-foreground: 45 18% 92%;
+
+    --primary: 107 98% 50%;
+    --primary-foreground: 24 28% 6%;
+
+    --secondary: 24 18% 13%;
+    --secondary-foreground: 45 18% 92%;
+
+    --muted: 24 16% 12%;
+    --muted-foreground: 40 10% 72%;
+
+    --accent: 24 18% 13%;
+    --accent-foreground: 45 18% 92%;
+
+    --destructive: 0 62% 32%;
+    --destructive-foreground: 45 18% 92%;
+
+    --border: 24 14% 18%;
+    --input: 24 14% 18%;
+    --ring: 107 98% 50%;
+
+    --radius: 34px;
+
+    --glow-1: 107 98% 50%;
+    --glow-2: 32 92% 52%;
+    --glow-3: 20 35% 28%;
   }
-  a:hover {
-    color: #747bff;
+
+  .dark {
+    color-scheme: dark;
   }
-  button {
-    background-color: #f9f9f9;
+
+  * {
+    @apply border-border;
+  }
+
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family:
+      Inter,
+      system-ui,
+      -apple-system,
+      Segoe UI,
+      Roboto,
+      Helvetica,
+      Arial,
+      "Apple Color Emoji",
+      "Segoe UI Emoji";
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  ::selection {
+    background: hsl(var(--primary) / 0.22);
+    color: hsl(var(--foreground));
+  }
+
+  .ui-range {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 2.5rem;
+    width: 100%;
+    background: transparent;
+  }
+
+  .ui-range:focus {
+    outline: none;
+  }
+
+  .ui-range::-webkit-slider-runnable-track {
+    height: 0.55rem;
+    border-radius: 9999px;
+    background: hsl(var(--border) / 0.7);
+    box-shadow: inset 0 0 0 1px hsl(var(--border) / 0.55);
+  }
+
+  .ui-range::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 1.05rem;
+    height: 1.05rem;
+    border-radius: 9999px;
+    background: hsl(var(--primary));
+    border: 1px solid hsl(var(--primary) / 0.9);
+    margin-top: -0.25rem;
+    box-shadow:
+      0 0 0 4px hsl(var(--primary) / 0.14),
+      0 10px 24px hsl(var(--primary) / 0.12);
+  }
+
+  .ui-range:focus-visible::-webkit-slider-thumb {
+    box-shadow:
+      0 0 0 6px hsl(var(--primary) / 0.18),
+      0 10px 24px hsl(var(--primary) / 0.14);
+  }
+
+  .ui-range::-moz-range-track {
+    height: 0.55rem;
+    border-radius: 9999px;
+    background: hsl(var(--border) / 0.7);
+    box-shadow: inset 0 0 0 1px hsl(var(--border) / 0.55);
+  }
+
+  .ui-range::-moz-range-thumb {
+    width: 1.05rem;
+    height: 1.05rem;
+    border-radius: 9999px;
+    background: hsl(var(--primary));
+    border: 1px solid hsl(var(--primary) / 0.9);
+    box-shadow:
+      0 0 0 4px hsl(var(--primary) / 0.14),
+      0 10px 24px hsl(var(--primary) / 0.12);
   }
 }
